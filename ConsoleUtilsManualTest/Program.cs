@@ -1,31 +1,36 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using ConsoleUtils;
 
 namespace ConsoleUtilsManualTest
 {
-    class Program
+    class Program : ConsoleCommandMapper
     {
-        public Program( string[] args )
+        private const string HEADER = "This is a test application.";
+
+        public Program() : base( HEADER )
         {
-            ConsoleCommandMapper commandMapper = new ConsoleCommandMapper( "Test Application" );
-            commandMapper.MapAction( DoAction, "This is a doaction command!!", "D", "Do" );
-            commandMapper.StartCommandLoop();
-            
+            MapAction( DoAction, "This is a doaction command!!", "D", "Do" );
         }
 
         private void DoAction( IEnumerable<string> args )
         {
-            foreach( var s in args )
-            {
-                Console.WriteLine( s );   
-            }
+            args.ToList().ForEach( Console.WriteLine );
         }
 
         static void Main( string[] args )
         {
-            new Program();
-            Console.ReadLine();
+            Program program = new Program();
+
+            if( args.Length == 0 )
+            {
+                program.StartCommandLoop();
+                Console.ReadLine();
+                return;
+            }
+
+            program.ExecuteCmd( args );
         }
     }
 }

@@ -13,13 +13,13 @@ namespace ConsoleUtils
 
         public ConsoleCommandMapper( string header )
         {
+            EnterPrompt = "Enter cmd...";
             helpMsg.Append( header.Trim() ).AppendLine().AppendLine();
             MapAction( OutputExitMessage, "Exit the program.", EXIT );
             MapAction( Help, "Print out help message.", "help", "?", "h" );
-            EnterPrompt = "Enter cmd...";
         }
 
-        public string EnterPrompt { get; set; }
+        protected string EnterPrompt { get; set; }
 
         public void MapAction( Action<string[]> action, string description, params string[] cmds )
         {
@@ -28,7 +28,7 @@ namespace ConsoleUtils
             int cmdsLength = 0;
             foreach( string cmd in cmds )
             {
-                actionMap.Add( cmd, action );
+                actionMap.Add( cmd.ToLowerInvariant(), action );
                 cmdsLength += cmd.Length + 2;
                 options += " /" + cmd;
             }
@@ -39,8 +39,18 @@ namespace ConsoleUtils
             helpMsg.Append( options ).Append(  padding ).Append( "-" ).Append( description ).AppendLine();       
         }
 
+        public void ExecuteCmd( params string[] args )
+        {
+            string option = args.Length > 0 ? args[ 0 ] : string.Empty;
+
+            List<string> cmds = args.ToList();
+            cmds.Remove( option );
+            ExecuteCmd( option, cmds.ToArray() );
+        }
+
         public void ExecuteCmd( string option, params string[] args )
         {
+            option = option.ToLowerInvariant();
             if( string.IsNullOrEmpty( option ) || !actionMap.ContainsKey( option ) )
             {
                 ConsoleOutput.ReturnWriteLine( "Unknown command." );
@@ -58,12 +68,7 @@ namespace ConsoleUtils
                 Console.WriteLine( "{1}{0}", EnterPrompt, Environment.NewLine );
                 cmd = Console.ReadLine();
                 string[] cmds = !string.IsNullOrEmpty( cmd ) ? cmd.Split( ' ' ) : new string[]{};
-
-                string option = cmds.Length > 0 ? cmds[ 0 ] : string.Empty;
-
-                List<string> args = cmds.ToList();
-                args.Remove( option );
-                ExecuteCmd( option, args.ToArray() );
+                ExecuteCmd( cmds );
             }
         }
 
@@ -74,7 +79,7 @@ namespace ConsoleUtils
 
         private static void OutputExitMessage( string[] args = null )
         {
-            ConsoleOutput.ReturnWriteLine( "Stopping application." );
+            ConsoleOutput.ReturnWriteLine( "Press any key to close." );
         }
     }
 }
